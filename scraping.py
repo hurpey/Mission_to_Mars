@@ -3,16 +3,16 @@
 # Import Splinter, BeautifulSoup, and Pandas
 from splinter import Browser
 from bs4 import BeautifulSoup as soup
-import pandas as pd 
+import pandas as pd  
 import datetime as dt 
 
 def scrape_all():
-    # Initiate headless driver
+     Initiate headless driver
     browser = Browser("chrome", executable_path="chromedriver", headless=True)
     # Set executable path and initialize the chrome browser in splinter 
     #executable_path = {'executable_path': '/usr/local/bin/chromedriver'}
     #browser = Browser('chrome', **executable_path)
-
+   
     # Since these are pairs 
     news_title, news_paragraph= mars_news(browser)
     hemisphere_image_urls=hemisphere(browser)
@@ -35,8 +35,8 @@ def scrape_all():
 
 def mars_news(browser):
 
-    # visit NASA website 
-    url= 'https://mars.nasa.gov/news/'
+    # visit the mars nasa news site 
+    url= 'https://redplanetscience.com/'
     browser.visit(url)
 
     #Optional delay for website 
@@ -52,13 +52,14 @@ def mars_news(browser):
     try:
         #slide_elem looks for <ul /> tags and descendents <li />
         # the period(.) is used for selecting classes such as item_list
-        slide_elem= news_soup.select_one('ul.item_list li.slide')
-
+        slide_elem = news_soup.select_one('ul.item_list li.slide')
+        # slide_elem.find("div", class_="content_title")
         # Chained the (.find) to slide_elem which says this variable holds lots of info, so look inside to find this specific entity
         # Get Title
-        news_title=slide_elem.find('div', class_= 'content_title').get_text()
-        # Get article body
-        news_p= slide_elem.find('div', class_='article_teaser_body').get_text()
+        news_title = slide_elem.find('div', class_= 'content_title').get_text()
+        # Get article body 
+        news_p = slide_elem.find('div', class_='article_teaser_body').get_text()
+        
 
     except AttributeError:
         return None,None
@@ -71,14 +72,14 @@ def mars_news(browser):
 def featured_image(browser):
 
     # Visit URL 
-    url= 'https://www.jpl.nasa.gov/spaceimages/?search=&category=Mar'
+    url= 'https://spaceimages-mars.com'
     browser.visit(url)
 
     # Find and click the full_image button
-    full_image_elem= browser.find_by_id('full_image')[0]
+    full_image_elem = browser.find_by_tag('button')[1]
     full_image_elem.click()
-
-    # Find the more info button and click that 
+    
+     # Find the more info button and click that 
     # is_element_present_by_text() method to search for an element that has the provided text
     browser.is_element_present_by_text('more info', wait_time=1)
 
@@ -87,8 +88,8 @@ def featured_image(browser):
     more_info_elem.click()
 
     # Parse the resulting html with soup
-    html=browser.html
-    img_soup=soup(html, 'html.parser')
+    html = browser.html
+    img_soup = soup(html, 'html.parser')
 
     # Add try/except for error handling
     try:
@@ -98,12 +99,12 @@ def featured_image(browser):
         # the .get('src') pulls the link to the image
 
         # WE are telling soup to go to figure tag, then within that look for an 'a' tag then within that look for a 'img' tag
-        img_url_rel= img_soup.select_one('figure.lede a img').get("src")
+        img_url_rel = img_soup.find('img', class_='fancybox-image').get('src')
     
     except AttributeError:
         return None
     # Need to get the FULL URL: Only had relative path before
-    img_url= f'https://www.jpl.nasa.gov{img_url_rel}'
+    img_url= f'https://spaceimages-mars.com/{img_url_rel}'
 
     return img_url
 
@@ -115,7 +116,7 @@ def mars_facts():
     # Add try/except for error handling
     try:
         # Creating DF by telling function to look for first html table in site it encounters by indexing it to zero
-        df=pd.read_html('http://space-facts.com/mars/')[0]
+        df=pd.read_html('https://galaxyfacts-mars.com')[0]
 
     # BaseException, catches multiple types of errors
     except BaseException:
@@ -126,13 +127,13 @@ def mars_facts():
     df.set_index('description', inplace=True)
 
     #Convert back to HTML format, add bootstrap
-    return df.to_html()
+    return df.to_html(classes="table table-striped")
 
 
 ## > SCRAPE HEMISPHERE <
 
 def hemisphere(browser):
-    url='https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
+    url='https://marshemispheres.com/'
     browser.visit(url)
 
 
